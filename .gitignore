@@ -1,0 +1,29 @@
+# Java class files
+*.class
+
+# generated files
+bin/
+gen/
+out/
+
+# Eclipse project files
+.classpath
+.project
+
+
+# Intellij project files
+*.iml
+*.ipr
+*.iws
+.idea/
+!.idea/gradle.xml
+
+# Gradle files
+.gradle
+build
+
+# Mac OS
+.DS_Store
+
+# Bukkit Jars
+bukkit/

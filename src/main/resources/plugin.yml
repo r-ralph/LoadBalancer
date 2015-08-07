@@ -1,0 +1,6 @@
+name: LoadBalancer
+main: jp.mcedu.mincra.loadbalancer.LoadBalancer
+version: 1.0-SNAPSHOT
+author: ralph
+# This is used so that we can automagically override default BungeeCord behavior.
+softDepends: []
