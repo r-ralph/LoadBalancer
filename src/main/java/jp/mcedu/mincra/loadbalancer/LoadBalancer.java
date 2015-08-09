@@ -1,6 +1,9 @@
 package jp.mcedu.mincra.loadbalancer;
 
 import jp.mcedu.mincra.loadbalancer.listener.PlayerLoginListener;
+import net.md_5.bungee.api.Callback;
+import net.md_5.bungee.api.config.ServerInfo;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
@@ -12,6 +15,7 @@ import redis.clients.jedis.Protocol;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.function.BiConsumer;
 
 public class LoadBalancer extends Plugin {
 
@@ -58,6 +62,29 @@ public class LoadBalancer extends Plugin {
                 Protocol.DEFAULT_TIMEOUT, config.getPassword(), Protocol.DEFAULT_DATABASE);
     }
 
+    public void doLoadBalance(ProxiedPlayer player) {
+        int min = Integer.MAX_VALUE;
+        final ServerInfo[] minServer = new ServerInfo[1];
+        getProxy().getServers().forEach((name, serverInfo) -> {
+            if (name.equals("lobby")) {
+                return;
+            }
+            if (serverInfo.getPlayers().size() < min) {
+                minServer[0] = serverInfo;
+            }
+        });
+        if (minServer[0] == null) {
+            throw new RuntimeException("Can't find minimum players server");
+        }
+        player.connect(minServer[0], (success, throwable) -> {
+            if (success) {
+                getLogger().info(String.format("Send player \"%s\" to %s.", player.getName(), minServer[0].getName()));
+            } else {
+                getLogger().info(String.format("Can't send player \"%s\" to %s.", player.getName(), minServer[0].getName()));
+                throwable.printStackTrace();
+            }
+        });
+    }
 
     public Config getConfig() {
         return config;

@@ -22,6 +22,8 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import redis.clients.jedis.Jedis;
 
+import java.util.concurrent.TimeUnit;
+
 public class PlayerLoginListener implements Listener {
 
     private LoadBalancer plugin;
@@ -35,5 +37,6 @@ public class PlayerLoginListener implements Listener {
         try (Jedis jedis = plugin.getPool().getResource()) {
             jedis.set(plugin.getConfig().getTableName(), String.valueOf(plugin.getProxy().getOnlineCount()));
         }
+        plugin.getProxy().getScheduler().schedule(plugin, () -> plugin.doLoadBalance(event.getPlayer()), 1, TimeUnit.SECONDS);
     }
 }
