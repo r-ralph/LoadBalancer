@@ -34,9 +34,13 @@ public class PlayerLoginListener implements Listener {
 
     @EventHandler
     public void onPostLogin(PostLoginEvent event) {
-        try (Jedis jedis = plugin.getPool().getResource()) {
-            jedis.set(plugin.getConfig().getTableName(), String.valueOf(plugin.getProxy().getOnlineCount()));
-        }
+        int count = plugin.getProxy().getOnlineCount() + 1;
+        plugin.getProxy().getScheduler().runAsync(plugin, () -> {
+            try (Jedis jedis = plugin.getPool().getResource()) {
+                jedis.set(plugin.getConfig().getTableName(), String.valueOf(count));
+                plugin.getLogger().info("Update count : " + count);
+            }
+        });
         plugin.getProxy().getScheduler().schedule(plugin, () -> plugin.doLoadBalance(event.getPlayer()), 1, TimeUnit.SECONDS);
     }
 }

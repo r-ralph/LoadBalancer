@@ -1,7 +1,6 @@
 package jp.mcedu.mincra.loadbalancer;
 
 import jp.mcedu.mincra.loadbalancer.listener.PlayerLoginListener;
-import net.md_5.bungee.api.Callback;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -15,7 +14,6 @@ import redis.clients.jedis.Protocol;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.function.BiConsumer;
 
 public class LoadBalancer extends Plugin {
 
@@ -58,19 +56,21 @@ public class LoadBalancer extends Plugin {
     }
 
     private void initRedis() {
-        pool = new JedisPool(new JedisPoolConfig(), config.getAddress(), config.getPort(),
-                Protocol.DEFAULT_TIMEOUT, config.getPassword(), Protocol.DEFAULT_DATABASE);
+        getProxy().getScheduler().runAsync(this, () -> pool = new JedisPool(new JedisPoolConfig(), config.getAddress(), config.getPort(),
+                Protocol.DEFAULT_TIMEOUT, config.getPassword(), Protocol.DEFAULT_DATABASE));
     }
 
     public void doLoadBalance(ProxiedPlayer player) {
-        int min = Integer.MAX_VALUE;
+        final int[] min = {Integer.MAX_VALUE};
         final ServerInfo[] minServer = new ServerInfo[1];
         getProxy().getServers().forEach((name, serverInfo) -> {
             if (name.equals("lobby")) {
                 return;
             }
-            if (serverInfo.getPlayers().size() < min) {
+            int size = serverInfo.getPlayers().size();
+            if (size < min[0]) {
                 minServer[0] = serverInfo;
+                min[0] = size;
             }
         });
         if (minServer[0] == null) {
